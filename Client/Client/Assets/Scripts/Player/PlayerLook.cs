@@ -15,6 +15,8 @@ public class PlayerLook : MonoBehaviour
     Camera cam = null;
     PlayerLookInput cameraInput = null;
 
+    LocalPlayer localPlayer;
+
     public void SetCamera(PlayerLookInput cameraInput)
     {
         this.cameraInput = cameraInput;
@@ -22,6 +24,8 @@ public class PlayerLook : MonoBehaviour
 
     void Awake()
     {
+        localPlayer = GetComponent<LocalPlayer>();
+
         CreateCameraHolder();
         CreateCameraObject();
         CreateCamera();
@@ -100,9 +104,12 @@ public class PlayerLook : MonoBehaviour
     void Look()
     {
         horizontalRotation += cameraInput.HorizontalInput * multiplyer * config.xSensitivity;
-        transform.localEulerAngles = Vector3.up * horizontalRotation;
-
         verticalRotation = Mathf.Clamp(verticalRotation - cameraInput.VerticalInput * multiplyer * config.ySensitivity, config.minClamp, config.maxClamp);
+
+        if (!localPlayer.ChangedPosition) return;
+        localPlayer.ChangedPosition = false;
+
+        transform.localEulerAngles = Vector3.up * horizontalRotation;
         cameraHolder.localEulerAngles = Vector3.right * verticalRotation;
     }
 }

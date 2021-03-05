@@ -9,6 +9,8 @@ public class LocalPlayer : MonoBehaviour
 
     [NonSerialized] public Vector3 newPosition = Vector3.zero;
 
+    public bool ChangedPosition = false;
+
     void OnEnable()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -19,7 +21,7 @@ public class LocalPlayer : MonoBehaviour
     {
         SendInput();
         SendRotation();
-        
+
         SetPosition();
         SetCamera();
     }
@@ -36,6 +38,8 @@ public class LocalPlayer : MonoBehaviour
 
     void SetPosition()
     {
+        if (transform.position != newPosition) ChangedPosition = true;
+
         transform.position = newPosition;
     }
 
