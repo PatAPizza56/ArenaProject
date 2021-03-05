@@ -5,11 +5,11 @@ using UnityEngine.InputSystem;
 public class PlayerInputConfig : ScriptableObject
 {
     [Header("Movement Input")]
-    [SerializeField] public InputAction playerMovement = null;
-    [SerializeField] public InputAction playerJump = null;
+    [SerializeField] public InputAction playerMovement = new InputAction();
+    [SerializeField] public InputAction playerJump = new InputAction();
 
     [Header("Camera Input")]
-    [SerializeField] public InputAction cameraMovement = null;
+    [SerializeField] public InputAction cameraMovement = new InputAction();
 
     void OnEnable()
     {

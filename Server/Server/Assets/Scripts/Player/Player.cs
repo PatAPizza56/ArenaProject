@@ -20,11 +20,16 @@ public class Player : MonoBehaviour
         SetMovement();
     }
 
-    public void SetInput(Vector2 playerInputMovement, float playerInputJump)
+    public void AddInput(Vector2 playerMovementInput, float playerJumpInput)
     {
-        this.playerInputMovement = playerInputMovement;
+        this.playerInputMovement = playerMovementInput;
+        if (playerJumpInput > 0) { handledJump = false; }
 
-        if (playerInputJump > 0) { handledJump = false; }
+        PlayerInput input = new PlayerInput()
+        {
+            playerMovementInput = playerMovementInput,
+            playerJumpInput = playerJumpInput
+        };
     }
 
     void SetMovement()
@@ -49,4 +54,10 @@ public class Player : MonoBehaviour
 
         playerMovement.SetMovement(movementInput);
     }
+}
+
+public class PlayerInput
+{
+    public Vector2 playerMovementInput;
+    public float playerJumpInput;
 }

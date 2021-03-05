@@ -17,6 +17,6 @@ MonoBehaviour:
   maxClamp: 90
   xSensitivity: 7
   ySensitivity: 7
-  wideFOV: 75
-  normalFOV: 60
-  zoomFOV: 50
+  wideFOV: 90
+  normalFOV: 75
+  zoomFOV: 60

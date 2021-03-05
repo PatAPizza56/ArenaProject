@@ -15,8 +15,6 @@ public class PlayerLook : MonoBehaviour
     Camera cam = null;
     PlayerLookInput cameraInput = null;
 
-    LocalPlayer localPlayer;
-
     public void SetCamera(PlayerLookInput cameraInput)
     {
         this.cameraInput = cameraInput;
@@ -24,8 +22,6 @@ public class PlayerLook : MonoBehaviour
 
     void Awake()
     {
-        localPlayer = GetComponent<LocalPlayer>();
-
         CreateCameraHolder();
         CreateCameraObject();
         CreateCamera();
@@ -74,6 +70,8 @@ public class PlayerLook : MonoBehaviour
         cameraHolder.parent = transform;
         cameraHolder.localPosition = config.offset;
         cameraHolder.localEulerAngles = Vector3.zero;
+
+        cameraHolder.GetComponent<InterpolatedTransform>().ResetInterpolation();
     }
 
     void SetupCameraObject()
@@ -96,19 +94,24 @@ public class PlayerLook : MonoBehaviour
         Cursor.visible = false;
     }
 
-    void LateUpdate()
+    void Update()
+    {
+        LookInput();
+    }
+
+    void FixedUpdate()
     {
         Look();
     }
 
-    void Look()
+    void LookInput()
     {
         horizontalRotation += cameraInput.HorizontalInput * multiplyer * config.xSensitivity;
         verticalRotation = Mathf.Clamp(verticalRotation - cameraInput.VerticalInput * multiplyer * config.ySensitivity, config.minClamp, config.maxClamp);
+    }
 
-        if (!localPlayer.ChangedPosition) return;
-        localPlayer.ChangedPosition = false;
-
+    void Look()
+    {
         transform.localEulerAngles = Vector3.up * horizontalRotation;
         cameraHolder.localEulerAngles = Vector3.right * verticalRotation;
     }

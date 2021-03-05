@@ -164,7 +164,7 @@ public class Server : MonoBehaviour
                 }
             }
 
-            server.players[clientID].GetComponent<Player>().SetInput(new Vector2(input[0], input[1]), input[2]);
+            server.players[clientID].GetComponent<Player>().AddInput(new Vector2(input[0], input[1]), input[2]);
 
             server.serverSend.SendMessageAll((int)ServerPacketID.PlayerPosition, new string[] { clientID.ToString(), server.players[clientID].transform.position.x.ToString(), server.players[clientID].transform.position.y.ToString(), server.players[clientID].transform.position.z.ToString() });
         }
@@ -198,6 +198,7 @@ public enum ServerPacketID
     WelcomeMessage = 1,
     PlayerConnected,
     PlayerDisconnected,
+    PhysicsState,
     PlayerPosition,
     PlayerRotation
 }

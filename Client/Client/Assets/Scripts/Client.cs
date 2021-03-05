@@ -203,6 +203,7 @@ public enum ServerPacketID
     WelcomeMessage = 1,
     PlayerConnected,
     PlayerDisconnected,
+    PhysicsState,
     PlayerPosition,
     PlayerRotation,
 }
