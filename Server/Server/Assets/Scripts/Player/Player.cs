@@ -4,7 +4,7 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     [Header("Setup")]
-    [SerializeField] PlayerController playerMovement;
+    [SerializeField] PlayerMover playerMovement;
 
     Vector2 playerInputMovement = Vector2.zero;
     bool handledJump = true;
