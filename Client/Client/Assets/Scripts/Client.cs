@@ -108,10 +108,11 @@ public class Client : MonoBehaviour
         public void OnReceiveData(ArraySegment<byte> data)
         {
             string[] message = Encoding.UTF8.GetString(data.Array, data.Offset, data.Count).Split('_');
+            int packetId = int.Parse(message[0]);
 
             try
             {
-                switch (int.Parse(message[0]))
+                switch (packetId)
                 {
                     case (int)ServerPacketID.WelcomeMessage:
                         WelcomeMessage(message);
@@ -121,6 +122,9 @@ public class Client : MonoBehaviour
                         break;
                     case (int)ServerPacketID.PlayerDisconnected:
                         PlayerDisconnectedMessage(message);
+                        break;
+                    case (int)ServerPacketID.PhysicsState:
+                        PhysicsStateMessage(message);
                         break;
                     case (int)ServerPacketID.PlayerPosition:
                         PlayerPositionMessage(message);
@@ -157,6 +161,14 @@ public class Client : MonoBehaviour
             Destroy(client.players[int.Parse(message[1])]);
 
             client.players.Remove(int.Parse(message[1]));
+        }
+
+        void PhysicsStateMessage(string[] message)
+        {
+            string physicsStateMessage = message[1];
+
+            PhysicsState.instance.physicsStateMessages = physicsStateMessage.Split('~');
+            PhysicsState.instance.syncedObjectCount = int.Parse(PhysicsState.instance.physicsStateMessages[0]);
         }
 
         void PlayerPositionMessage(string[] message)

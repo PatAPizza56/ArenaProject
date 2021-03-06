@@ -38,6 +38,8 @@ public class Server : MonoBehaviour
         server.OnData = serverHandle.OnReceiveData;
         server.OnDisconnected = serverHandle.OnClientDisconnect;
 
+        instance = this;
+
         server.Start(1337);
     }
 
@@ -111,7 +113,6 @@ public class Server : MonoBehaviour
                 int playerID = server.players.ElementAt(i).Key;
                 currentPlayers.Add($"{playerID}");
             }
-            string welcomeMessage = $"{currentPlayers}";
 
             server.serverSend.SendMessageAll((int)ServerPacketID.PlayerConnected, new string[] { clientID.ToString() });
             server.serverSend.SendMessage(clientID, (int)ServerPacketID.WelcomeMessage, currentPlayers.ToArray());
