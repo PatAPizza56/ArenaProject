@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class InterpolatedTransformUpdater : MonoBehaviour
 {
-    private InterpolatedTransform interpolatedTransform;
+    InterpolatedTransform interpolatedTransform = null;
 
     void OnEnable()
     {

@@ -58,9 +58,9 @@ public class InterpolatedTransform : MonoBehaviour
 
     private struct TransformData
     {
-        public Vector3 position;
-        public Quaternion rotation;
-        public Vector3 scale;
+        public Vector3 position { get; set; }
+        public Quaternion rotation { get; set; }
+        public Vector3 scale { get; set; }
 
         public TransformData(Vector3 position, Quaternion rotation, Vector3 scale)
         {

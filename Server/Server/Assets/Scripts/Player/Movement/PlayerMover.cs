@@ -21,14 +21,6 @@ public class PlayerMover : MonoBehaviour
 
     IMovementModifier[] movementModifiers;
 
-    void OnEnable()
-    {
-    }
-
-    void OnDisable()
-    {
-    }
-
     void Start()
     {
         currentMaxMoveSpeed = config.speed; // this doesn't need to be here if the crouching is implemented correctly
@@ -58,7 +50,7 @@ public class PlayerMover : MonoBehaviour
         config.maxStepUpHeight = Mathf.Min(config.maxStepUpHeight, config.radius);
     }
 
-    public void SetMovement(MovementInput input)
+    public void SetMovement(PlayerInput input)
     {
         // Crouching();
 
@@ -286,11 +278,4 @@ public class PlayerMover : MonoBehaviour
             isGrounded = true;
         }
     }
-}
-
-public class MovementInput
-{
-    public float HorizontalInput { get; set; }
-    public float VerticalInput { get; set; }
-    public float JumpInput { get; set; }
 }

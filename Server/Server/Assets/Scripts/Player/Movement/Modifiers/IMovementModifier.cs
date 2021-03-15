@@ -12,5 +12,5 @@ public class ModifierInfo
     public Vector3 CurrentVelocity { get; set; }
     public float CurrentMaxMoveSpeed { get; set; }
     public bool IsCrouching { get; set; }
-    public MovementInput Input { get; set; }
+    public PlayerInput Input { get; set; }
 }

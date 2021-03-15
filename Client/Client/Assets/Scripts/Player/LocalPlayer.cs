@@ -1,13 +1,11 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class LocalPlayer : MonoBehaviour
 {
     [Header("Setup")]
     [SerializeField] PlayerInput playerInput = null;
     [SerializeField] PlayerLook playerLook = null;
-
-    [NonSerialized] public Vector3 newPosition = Vector3.zero;
+    [SerializeField] Transform cameraTransform = null;
 
     void OnEnable()
     {
@@ -16,31 +14,21 @@ public class LocalPlayer : MonoBehaviour
     }
 
     void Update()
-    {
-        SendInput();
-        SendRotation();
-        
+    {        
         SetCamera();
     }
 
     void FixedUpdate()
     {
-        SetPosition();
+        SendInput();
     }
 
     void SendInput()
     {
-        Client.instance.clientSend.SendMessage((int)ClientPacketID.PlayerInput, new string[] { playerInput.playerMovementInput.x.ToString(), playerInput.playerMovementInput.y.ToString(), playerInput.playerJumpInput.ToString() });
-    }
-
-    void SendRotation()
-    {
-        Client.instance.clientSend.SendMessage((int)ClientPacketID.PlayerRotation, new string[] { transform.eulerAngles.y.ToString() });
-    }
-
-    void SetPosition()
-    {
-        transform.position = newPosition;
+        Client.Send.SendMessage((int)ClientPacketID.PlayerInput, 
+            $"{cameraTransform.position.x}~{cameraTransform.position.y}~{cameraTransform.position.z}~" +
+            $"{cameraTransform.eulerAngles.x}~{cameraTransform.eulerAngles.y}~{cameraTransform.eulerAngles.z}~" +
+            $"{playerInput.playerMovementInput.x}~{playerInput.playerMovementInput.y}~{playerInput.playerJumpInput}");
     }
 
     void SetCamera()

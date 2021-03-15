@@ -5,195 +5,32 @@ using UnityEngine;
 
 public class Client : MonoBehaviour
 {
-    [Header("Config")]
-    [SerializeField] ClientConfig clientConfig = null;
+    [Header("Setup")]
+    [SerializeField] ClientConfig config = null;
 
-    public static Client instance;
+    static ClientConfig staticConfig = null;
 
-    Telepathy.Client client = new Telepathy.Client(50000);
-    Dictionary<int, GameObject> players = new Dictionary<int, GameObject>();
+    static Telepathy.Client client = new Telepathy.Client(50000);
 
-    GameObject localPlayerObject = null;
-    LocalPlayer localPlayer = null;
+    public static Dictionary<int, GameObject> players = new Dictionary<int, GameObject>();
+    public static GameObject localPlayerObject = null;
 
-    public ClientSend clientSend = null;
-    ClientHandle clientHandle = null;
+    public static ClientSend Send = null;
+    static ClientHandle Handle = null;
+
+    void Awake()
+    {
+        staticConfig = config;
+    }
 
     void Update()
     {
         client.Tick(100);
     }
+
     void OnApplicationQuit()
     {
         DisconnectFromServer();
-    }
-
-    public void ConnectToServer()
-    {
-        Application.runInBackground = true;
-
-        Telepathy.Log.Info = Debug.Log;
-        Telepathy.Log.Warning = Debug.LogWarning;
-        Telepathy.Log.Error = Debug.LogError;
-
-        clientSend = new ClientSend(this);
-        clientHandle = new ClientHandle(this);
-
-        client.OnConnected = clientHandle.OnConnect;
-        client.OnData = clientHandle.OnReceiveData;
-        client.OnDisconnected = clientHandle.OnDisconnect;
-
-        instance = this;
-
-        client.Connect("localhost", 1337);
-    }
-
-    public void DisconnectFromServer()
-    {
-        client.Disconnect();
-    }
-
-    public class ClientSend
-    {
-        Client client = null;
-        public ClientSend(Client client)
-        {
-            this.client = client;
-        }
-
-        public void SendMessage(int packetID, string[] message)
-        {
-            string sendMessage = $"{packetID}_";
-
-            for (int i = 0; i < message.Length; i++)
-            {
-                sendMessage += $"{message[i]}_";
-            }
-
-            sendMessage = sendMessage.Remove(sendMessage.Length - 1);
-
-            client.client.Send(new ArraySegment<byte>(Encoding.UTF8.GetBytes(sendMessage)));
-        }
-    }
-    public class ClientHandle
-    {
-        Client client = null;
-        public ClientHandle(Client client)
-        {
-            this.client = client;
-        }
-
-        public void OnConnect()
-        {
-            Debug.Log("Connected to the server");
-
-            client.localPlayerObject = Instantiate(client.clientConfig.localPlayerPrefab, Vector3.zero, Quaternion.identity);
-            client.localPlayer = client.localPlayerObject.GetComponent<LocalPlayer>();
-        }
-
-        public void OnDisconnect()
-        {
-            Debug.Log("Disconnected from the server");
-
-            foreach (KeyValuePair<int, GameObject> player in client.players)
-            {
-                Destroy(player.Value);
-            }
-            client.players.Clear();
-
-            Destroy(client.localPlayerObject);
-            client.localPlayer = null;
-        }
-
-        public void OnReceiveData(ArraySegment<byte> data)
-        {
-            string[] message = Encoding.UTF8.GetString(data.Array, data.Offset, data.Count).Split('_');
-            int packetId = int.Parse(message[0]);
-
-            try
-            {
-                switch (packetId)
-                {
-                    case (int)ServerPacketID.WelcomeMessage:
-                        WelcomeMessage(message);
-                        break;
-                    case (int)ServerPacketID.PlayerConnected:
-                        PlayerConnectedMessage(message);
-                        break;
-                    case (int)ServerPacketID.PlayerDisconnected:
-                        PlayerDisconnectedMessage(message);
-                        break;
-                    case (int)ServerPacketID.PhysicsState:
-                        PhysicsStateMessage(message);
-                        break;
-                    case (int)ServerPacketID.PlayerPosition:
-                        PlayerPositionMessage(message);
-                        break;
-                    case (int)ServerPacketID.PlayerRotation:
-                        PlayerRotationMessage(message);
-                        break;
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogError(e);
-            }
-        }
-
-        void WelcomeMessage(string[] message)
-        {
-            for (int i = 0; i < message.Length; i++)
-            {
-                if (i != 0)
-                {
-                    client.players.Add(int.Parse(message[i]), Instantiate(client.clientConfig.playerPrefab, Vector3.zero, Quaternion.identity));
-                }
-            }
-        }
-
-        void PlayerConnectedMessage(string[] message)
-        {
-            client.players.Add(int.Parse(message[1]), Instantiate(client.clientConfig.playerPrefab, Vector3.zero, Quaternion.identity));
-        }
-
-        void PlayerDisconnectedMessage(string[] message)
-        {
-            Destroy(client.players[int.Parse(message[1])]);
-
-            client.players.Remove(int.Parse(message[1]));
-        }
-
-        void PhysicsStateMessage(string[] message)
-        {
-            string physicsStateMessage = message[1];
-
-            PhysicsState.instance.physicsStateMessages = physicsStateMessage.Split('~');
-            PhysicsState.instance.syncedObjectCount = int.Parse(PhysicsState.instance.physicsStateMessages[0]);
-        }
-
-        void PlayerPositionMessage(string[] message)
-        {
-            Vector3 playerPosition = new Vector3(float.Parse(message[2]), float.Parse(message[3]), float.Parse(message[4]));
-
-            if (client.players.ContainsKey(int.Parse(message[1])))
-            {
-                client.players[int.Parse(message[1])].transform.position = playerPosition;
-            }
-            else
-            {
-                client.localPlayer.newPosition = playerPosition;
-            }
-        }
-
-        void PlayerRotationMessage(string[] message)
-        {
-            float yRotation = float.Parse(message[2]);
-
-            if (client.players.ContainsKey(int.Parse(message[1])))
-            {
-                client.players[int.Parse(message[1])].transform.eulerAngles = new Vector3(client.players[int.Parse(message[1])].transform.rotation.x, yRotation, client.players[int.Parse(message[1])].transform.rotation.z);
-            }
-        }
     }
 
     void OnGUI()
@@ -208,20 +45,96 @@ public class Client : MonoBehaviour
 
         GUI.enabled = true;
     }
+
+    public static void ConnectToServer()
+    {
+        Application.runInBackground = true;
+
+        Telepathy.Log.Info = Debug.Log;
+        Telepathy.Log.Warning = Debug.LogWarning;
+        Telepathy.Log.Error = Debug.LogError;
+
+        Send = new ClientSend();
+        Handle = new ClientHandle();
+
+        client.OnConnected = Handle.OnConnect;
+        client.OnData = Handle.OnReceiveData;
+        client.OnDisconnected = Handle.OnDisconnect;
+
+        client.Connect("localhost", 1337);
+    }
+
+    public static void DisconnectFromServer()
+    {
+        client.Disconnect();
+    }
+
+    public class ClientSend
+    {
+        public void SendMessage(int packetID, string message)
+        {
+            string sendMessage = $"{packetID}_{message}";
+
+            client.Send(new ArraySegment<byte>(Encoding.UTF8.GetBytes(sendMessage)));
+        }
+    }
+
+    public class ClientHandle
+    {
+        public void OnConnect()
+        {
+            localPlayerObject = Instantiate(staticConfig.localPlayerPrefab, Vector3.zero, Quaternion.identity);
+        }
+
+        public void OnDisconnect()
+        {
+            foreach (KeyValuePair<int, GameObject> player in players)
+            {
+                Destroy(player.Value);
+            }
+            players.Clear();
+
+            Destroy(localPlayerObject);
+        }
+
+        public void OnReceiveData(ArraySegment<byte> data)
+        {
+            string[] message = Encoding.UTF8.GetString(data.Array, data.Offset, data.Count).Split('_');
+
+            int packetId = int.Parse(message[0]);
+            string packetContent = message[1];
+
+            switch (packetId)
+            {
+                case (int)ServerPacketID.ObjectState:
+                    ObjectStateMessage(packetContent);
+                    break;
+                case (int)ServerPacketID.PhysicsState:
+                    PhysicsStateMessage(packetContent);
+                    break;
+            }
+        }
+
+        void ObjectStateMessage(string message)
+        {
+            SyncedObjectManager.syncedObjectStateMessage = message;
+            SyncedObjectManager.modifiedSyncedObjectStates = true;
+        }
+
+        void PhysicsStateMessage(string message)
+        {
+            SyncedObjectManager.syncedObjectPhysicsMessage = message;
+        }
+    }
 }
 
 public enum ServerPacketID
 {
-    WelcomeMessage = 1,
-    PlayerConnected,
-    PlayerDisconnected,
+    ObjectState = 1,
     PhysicsState,
-    PlayerPosition,
-    PlayerRotation,
 }
 
 public enum ClientPacketID
 {
     PlayerInput = 1,
-    PlayerRotation,
 }

@@ -4,7 +4,7 @@ public class JumpModifier : MonoBehaviour, IMovementModifier
 {
     public Vector3 Modify(ModifierInfo info, PlayerMoverConfig config)
     {
-        if (info.Input.JumpInput < 1f) return Vector3.zero;
+        if (info.Input.playerJumpInput < 1f) return Vector3.zero;
 
         if (!info.IsGrounded) return Vector3.zero;
         if (info.IsCrouching) return Vector3.zero;

@@ -1,13 +1,11 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
     [Header("Setup")]
-    [SerializeField] PlayerMover playerMovement;
-
-    Vector2 playerInputMovement = Vector2.zero;
-    bool handledJump = true;
+    [SerializeField] PlayerMover playerMovement = null;
+    List<PlayerInput> inputBuffer = new List<PlayerInput>();
 
     void Start()
     {
@@ -17,47 +15,31 @@ public class Player : MonoBehaviour
 
     void FixedUpdate()
     {
-        SetMovement();
+        HandleInput();
     }
 
-    public void AddInput(Vector2 playerMovementInput, float playerJumpInput)
+    public void AddInput(PlayerInput playerInput)
     {
-        this.playerInputMovement = playerMovementInput;
-        if (playerJumpInput > 0) { handledJump = false; }
-
-        PlayerInput input = new PlayerInput()
-        {
-            playerMovementInput = playerMovementInput,
-            playerJumpInput = playerJumpInput
-        };
+        inputBuffer.Add(playerInput);
     }
 
-    void SetMovement()
+    void HandleInput()
     {
-        float jump;
-        if (!handledJump)
-        {
-            jump = 1;
-            handledJump = true;
-        }
-        else
-        {
-            jump = 0;
-        }
+        PlayerInput input = inputBuffer[0];
 
-        MovementInput movementInput = new MovementInput()
-        {
-            HorizontalInput = playerInputMovement.x,
-            VerticalInput = playerInputMovement.y,
-            JumpInput = jump
-        };
+        transform.localEulerAngles = new Vector3(0f, input.playerCameraRotation.y, 0f);
 
-        playerMovement.SetMovement(movementInput);
+        playerMovement.SetMovement(input);
+
+        inputBuffer.RemoveAt(0);
     }
 }
 
 public class PlayerInput
 {
-    public Vector2 playerMovementInput;
-    public float playerJumpInput;
+    public Vector3 playerCameraPosition { get; set; }
+    public Vector3 playerCameraRotation { get; set; }
+
+    public Vector2 playerMovementInput { get; set; }
+    public float playerJumpInput { get; set; }
 }

@@ -4,7 +4,7 @@ public class AccelerationModifier : MonoBehaviour, IMovementModifier
 {
     public Vector3 Modify(ModifierInfo info, PlayerMoverConfig config)
     {
-        Vector3 wishDir = transform.right * info.Input.HorizontalInput + transform.forward * info.Input.VerticalInput;
+        Vector3 wishDir = transform.right * info.Input.playerMovementInput.x + transform.forward * info.Input.playerMovementInput.y;
 
         Vector3 wishVel = wishDir * info.CurrentMaxMoveSpeed;
         Vector3 newHorVel;

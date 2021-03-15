@@ -4,6 +4,6 @@
 public class ServerConfig : ScriptableObject
 {
     [Header("Player Settings")]
-    [SerializeField] public GameObject playerPrefab;
-    [SerializeField] public Vector3[] spawnPoints;
+    [SerializeField] public GameObject playerPrefab = null;
+    [SerializeField] public Vector3[] spawnPoints = null;
 }
