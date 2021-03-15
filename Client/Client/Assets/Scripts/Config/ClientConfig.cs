@@ -5,5 +5,4 @@ public class ClientConfig : ScriptableObject
 {
     [Header("Prefab Settings")]
     [SerializeField] public GameObject localPlayerPrefab = null;
-    [SerializeField] public GameObject playerPrefab = null;
 }

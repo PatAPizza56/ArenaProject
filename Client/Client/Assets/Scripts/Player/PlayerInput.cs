@@ -11,6 +11,11 @@ public class PlayerInput : MonoBehaviour
 
     [HideInInspector] public Vector2 cameraMovementInput = Vector2.zero;
 
+    void OnEnable()
+    {
+        config.Initialize();
+    }
+
     void Update()
     {
         playerMovementInput = config.playerMovement.ReadValue<Vector2>();

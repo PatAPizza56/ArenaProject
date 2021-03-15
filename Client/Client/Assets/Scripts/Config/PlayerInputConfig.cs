@@ -11,7 +11,7 @@ public class PlayerInputConfig : ScriptableObject
     [Header("Camera Input")]
     [SerializeField] public InputAction cameraMovement = new InputAction();
 
-    void OnEnable()
+    public void Initialize()
     {
         playerMovement.Enable();
         playerJump.Enable();

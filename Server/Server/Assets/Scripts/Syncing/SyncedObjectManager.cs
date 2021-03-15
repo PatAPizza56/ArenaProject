@@ -15,7 +15,10 @@ public class SyncedObjectManager : MonoBehaviour
             modifiedSyncedObjects = false;
         }
 
-        SendSyncedObjectPositions();
+        if (Server.Send != null)
+        {
+            SendSyncedObjectPositions();
+        }
     }
 
     public static void AddSyncedObject(SyncedObject syncedObject, SyncedObjectType syncedObjectType)

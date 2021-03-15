@@ -5,7 +5,9 @@ public class Player : MonoBehaviour
 {
     [Header("Setup")]
     [SerializeField] PlayerMover playerMovement = null;
+
     List<PlayerInput> inputBuffer = new List<PlayerInput>();
+    PlayerInput lastInput = new PlayerInput();
 
     void Start()
     {
@@ -25,13 +27,23 @@ public class Player : MonoBehaviour
 
     void HandleInput()
     {
-        PlayerInput input = inputBuffer[0];
+        try
+        {
+            PlayerInput input = inputBuffer[0];
+            lastInput = input;
 
-        transform.localEulerAngles = new Vector3(0f, input.playerCameraRotation.y, 0f);
+            transform.localEulerAngles = new Vector3(0f, input.playerCameraRotation.y, 0f);
 
-        playerMovement.SetMovement(input);
+            playerMovement.SetMovement(input);
 
-        inputBuffer.RemoveAt(0);
+            inputBuffer.RemoveAt(0);
+        }
+        catch
+        {
+            transform.localEulerAngles = new Vector3(0f, lastInput.playerCameraRotation.y, 0f);
+
+            playerMovement.SetMovement(lastInput);
+        }
     }
 }
 

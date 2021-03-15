@@ -25,7 +25,10 @@ public class SyncedObjectManager : MonoBehaviour
             modifiedSyncedObjectStates = false;
         }
         
-        HandleSyncedObjectPositions();
+        if (syncedObjectPhysicsMessage != null)
+        {
+            HandleSyncedObjectPositions();
+        }
     }
 
     void HandleSyncedObjects()
@@ -83,10 +86,14 @@ public class SyncedObjectManager : MonoBehaviour
 
             SyncedObject syncedObject = syncedObjects.Find(s => s.id == syncedObjectId);
 
-            if (syncedObject != null)
+            if (syncedObject != null && syncedObject.gameObject != Client.localPlayerObject)
             {
                 syncedObject.transform.position = syncedObjectPosition;
-                //syncedObject.transform.eulerAngles = syncedObjectRotation;
+                syncedObject.transform.eulerAngles = syncedObjectRotation;
+            }
+            else if (syncedObject != null)
+            {
+                syncedObject.transform.position = syncedObjectPosition;
             }
         }
     }
