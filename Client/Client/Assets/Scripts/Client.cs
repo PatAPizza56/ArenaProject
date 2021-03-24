@@ -1,5 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Text;
 using UnityEngine;
 
@@ -71,11 +74,9 @@ public class Client : MonoBehaviour
 
     public class ClientSend
     {
-        public void SendMessage(int packetID, string message)
+        public void SendMessage(string message)
         {
-            string sendMessage = $"{packetID}_{message}";
-
-            client.Send(new ArraySegment<byte>(Encoding.UTF8.GetBytes(sendMessage)));
+            client.Send(new ArraySegment<byte>(Encoding.UTF8.GetBytes(message)));
         }
     }
 
@@ -99,31 +100,106 @@ public class Client : MonoBehaviour
 
         public void OnReceiveData(ArraySegment<byte> data)
         {
-            string[] message = Encoding.UTF8.GetString(data.Array, data.Offset, data.Count).Split('_');
-
-            int packetId = int.Parse(message[0]);
-            string packetContent = message[1];
-
-            switch (packetId)
+            try
             {
-                case (int)ServerPacketID.ObjectState:
-                    ObjectStateMessage(packetContent);
-                    break;
-                case (int)ServerPacketID.PhysicsState:
-                    PhysicsStateMessage(packetContent);
-                    break;
+                Message message = JsonConvert.DeserializeObject<Message>(Encoding.UTF8.GetString(data.Array, data.Offset, data.Count));
+
+                switch (message.PacketId)
+                {
+                    case (int)ServerPacketID.ObjectState:
+                        ObjectStateMessage(JsonConvert.DeserializeObject<Message.ObjectStateMessage>(message.PacketContent));
+                        break;
+                    case (int)ServerPacketID.PhysicsState:
+                        PhysicsStateMessage(JsonConvert.DeserializeObject<Message.PhysicsStateMessage>(message.PacketContent));
+                        break;
+                }
+            }
+            catch
+            {
+                Debug.Log("Could not recieve message from server");
             }
         }
 
-        void ObjectStateMessage(string message)
+        void ObjectStateMessage(Message.ObjectStateMessage message)
         {
             SyncedObjectManager.syncedObjectStateMessage = message;
             SyncedObjectManager.modifiedSyncedObjectStates = true;
         }
 
-        void PhysicsStateMessage(string message)
+        void PhysicsStateMessage(Message.PhysicsStateMessage message)
         {
             SyncedObjectManager.syncedObjectPhysicsMessage = message;
+        }
+    }
+}
+
+public class Message
+{
+    public int PacketId { get; set; }
+    public string PacketContent { get; set; }
+
+    public class ObjectStateMessage
+    {
+        public long ClientId { get; set; }
+        public SyncedObjectMessage[] SyncedObjects { get; set; }
+    }
+
+    public class PhysicsStateMessage
+    {
+        public SyncedObjectMessage[] SyncedObjects { get; set; }
+    }
+
+    public class SyncedObjectMessage
+    {
+        public long Id { get; set; }
+        public int Type { get; set; }
+
+        public SyncedVector3 Position { get; set; }
+        public SyncedVector3 Rotation { get; set; }
+    }
+
+    public class PlayerInputMessage
+    {
+        public SyncedVector3 CameraPosition { get; set; }
+        public SyncedVector3 CameraRotation { get; set; }
+
+        public SyncedVector2 MoveInput { get; set; }
+        public float JumpInput { get; set; }
+    }
+
+    public struct SyncedVector2
+    {
+        public SyncedVector2(float x, float y)
+        {
+            X = x;
+            Y = y;
+        }
+
+        public float X { get; set; }
+        public float Y { get; set; }
+
+        public Vector2 ToVector2()
+        {
+            return new Vector2(X, Y);
+        }
+    }
+
+    public struct SyncedVector3
+    {
+        public SyncedVector3(float x, float y, float z)
+        {
+            X = x;
+            Y = y;
+            Z = z;
+        }
+
+        public float X { get; set; }
+        public float Y { get; set; }
+        public float Z { get; set; }
+
+        public Vector3 ToVector3()
+        {
+            return new Vector3(X, Y, Z);
         }
     }
 }

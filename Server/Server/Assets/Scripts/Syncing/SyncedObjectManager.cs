@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -76,38 +77,61 @@ public class SyncedObjectManager : MonoBehaviour
 
     void SendSyncedObjects()
     {
-        string syncedObjectsMessage = "";
+        List<Message.SyncedObjectMessage> syncedObjectList = new List<Message.SyncedObjectMessage>();
 
         for (int i = 0; i < syncedObjects.Count; i++)
         {
-            syncedObjectsMessage += $"{syncedObjects[i].id}~{(int)syncedObjects[i].type}~";
-        }
+            syncedObjectList.Add(new Message.SyncedObjectMessage()
+            {
+                Id = syncedObjects[i].id,
 
-        syncedObjectsMessage.Remove(syncedObjectsMessage.Length - 1);
+                Type = (int)syncedObjects[i].type,
+            });
+        }
 
         for (int i = 0; i < Server.players.Count; i++)
         {
-            int clientID = Server.players.ElementAt(i).Key;
+            int clientId = Server.players.ElementAt(i).Key;
 
-            Server.Send.SendMessage(clientID, (int)ServerPacketID.ObjectState, syncedObjectsMessage +  Server.players[clientID].GetComponent<SyncedObject>().id);
+            Message message = new Message()
+            {
+                PacketId = (int)ServerPacketID.ObjectState,
+                PacketContent = JsonConvert.SerializeObject(new Message.ObjectStateMessage()
+                {
+                    ClientId = Server.players[clientId].GetComponent<SyncedObject>().id,
+                    SyncedObjects = syncedObjectList.ToArray(),
+                }),
+            };
+
+            Server.Send.SendMessage(clientId, JsonConvert.SerializeObject(message, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
         }
     }
 
     void SendSyncedObjectPositions()
     {
-        string syncedObjectPositionsMessage = $"";
+        List<Message.SyncedObjectMessage> syncedObjectList = new List<Message.SyncedObjectMessage>();
 
         for (int i = 0; i < syncedObjects.Count; i++)
         {
-            Vector3 position = syncedObjects[i].gameObject.transform.position;
-            Vector3 rotation = syncedObjects[i].gameObject.transform.eulerAngles;
+            syncedObjectList.Add(new Message.SyncedObjectMessage()
+            {
+                Id = syncedObjects[i].id,
 
-            syncedObjectPositionsMessage += $"{syncedObjects[i].id}~{position.x}~{position.y}~{position.z}~{rotation.x}~{rotation.y}~{rotation.z}~";
+                Position = new Message.SyncedVector3(syncedObjects[i].gameObject.transform.position.x, syncedObjects[i].gameObject.transform.position.y, syncedObjects[i].gameObject.transform.position.z),
+                Rotation = new Message.SyncedVector3(syncedObjects[i].gameObject.transform.eulerAngles.x, syncedObjects[i].gameObject.transform.eulerAngles.y, syncedObjects[i].gameObject.transform.eulerAngles.z),
+            });
         }
 
-        syncedObjectPositionsMessage.Remove(syncedObjectPositionsMessage.Length - 1);
+        Message message = new Message()
+        {
+            PacketId = (int)ServerPacketID.PhysicsState,
+            PacketContent = JsonConvert.SerializeObject(new Message.PhysicsStateMessage()
+            {
+                SyncedObjects = syncedObjectList.ToArray(),
+            }),
+        };
 
-        Server.Send.SendMessageAll((int)ServerPacketID.PhysicsState, syncedObjectPositionsMessage);
+        Server.Send.SendMessageAll(JsonConvert.SerializeObject(message, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
     }
 }
 

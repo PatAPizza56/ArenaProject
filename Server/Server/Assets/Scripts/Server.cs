@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -71,32 +73,30 @@ public class Server : MonoBehaviour
 
     public class ServerSend
     {
-        public void SendMessage(int clientID, int packetID, string message)
+        public void SendMessage(int clientID, string message)
         {
-            string sendMessage = $"{packetID}_{message}";
-
-            server.Send(clientID, new ArraySegment<byte>(Encoding.UTF8.GetBytes(sendMessage)));
+            server.Send(clientID, new ArraySegment<byte>(Encoding.UTF8.GetBytes(message)));
         }
 
-        public void SendMessageAll(int packetID, string message)
+        public void SendMessageAll(string message)
         {
             for (int i = 0; i < players.Count; i++)
             {
-                int clientID = players.ElementAt(i).Key;
+                int clientId = players.ElementAt(i).Key;
 
-                SendMessage(clientID, packetID, message);
+                SendMessage(clientId, message);
             }
         }
 
-        public void SendMessageAllExcept(int clientID, int packetID, string message)
+        public void SendMessageAllExcept(int clientID, string message)
         {
             for (int i = 0; i < players.Count; i++)
             {
-                int eClientID = players.ElementAt(i).Key;
+                int eClientId = players.ElementAt(i).Key;
 
-                if (eClientID != clientID)
+                if (eClientId != clientID)
                 {
-                    SendMessage(eClientID, packetID, message);
+                    SendMessage(eClientId, message);
                 }
             }
         }
@@ -120,37 +120,104 @@ public class Server : MonoBehaviour
 
         public void OnReceiveData(int clientID, ArraySegment<byte> data)
         {
-            string[] message = Encoding.UTF8.GetString(data.Array, data.Offset, data.Count).Split('_');
-
-            int packetID = int.Parse(message[0]);
-            string packetContent = message[1];
-
-            switch (packetID)
+            try
             {
-                case (int)ClientPacketID.PlayerInput:
-                    PlayerInputMessage(clientID, packetContent);
-                    break;
+                Message message = JsonConvert.DeserializeObject<Message>(Encoding.UTF8.GetString(data.Array, data.Offset, data.Count));
+
+                switch (message.PacketId)
+                {
+                    case (int)ClientPacketID.PlayerInput:
+                        PlayerInputMessage(clientID, JsonConvert.DeserializeObject<Message.PlayerInputMessage>(message.PacketContent));
+                        break;
+                }
+            }
+            catch
+            {
+                Debug.Log($"Could not recieve message from client: {clientID}");
             }
         }
 
-        void PlayerInputMessage(int clientID, string message)
+        void PlayerInputMessage(int clientID, Message.PlayerInputMessage message)
         {
-            string[] input = message.Split('~');
-
-            Vector3 cameraPosition = new Vector3(float.Parse(input[0]), float.Parse(input[1]), float.Parse(input[2]));
-            Vector3 cameraRotation = new Vector3(float.Parse(input[3]), float.Parse(input[4]), float.Parse(input[5]));
-
-            Vector2 moveInput = new Vector2(float.Parse(input[6]), float.Parse(input[7]));
-            float jumpInput = float.Parse(input[8]);
-
             players[clientID].GetComponent<Player>().AddInput(new PlayerInput()
             {
-                playerCameraPosition = cameraPosition,
-                playerCameraRotation = cameraRotation,
+                playerCameraPosition = message.CameraPosition.ToVector3(),
+                playerCameraRotation = message.CameraRotation.ToVector3(),
 
-                playerMovementInput = moveInput,
-                playerJumpInput = jumpInput
+                playerMovementInput = message.MoveInput.ToVector2(),
+                playerJumpInput = message.JumpInput,
             });
+        }
+    }
+}
+
+public class Message
+{
+    public int PacketId { get; set; }
+    public string PacketContent { get; set; }
+
+    public class ObjectStateMessage
+    {
+        public long ClientId { get; set; }
+        public SyncedObjectMessage[] SyncedObjects { get; set; }
+    }
+
+    public class PhysicsStateMessage
+    {
+        public SyncedObjectMessage[] SyncedObjects { get; set; }
+    }
+
+    public class SyncedObjectMessage
+    {
+        public long Id { get; set; }
+        public int Type { get; set; }
+
+        public SyncedVector3 Position { get; set; }
+        public SyncedVector3 Rotation { get; set; }
+    }
+
+    public class PlayerInputMessage
+    {
+        public SyncedVector3 CameraPosition { get; set; }
+        public SyncedVector3 CameraRotation { get; set; }
+
+        public SyncedVector2 MoveInput { get; set; }
+        public float JumpInput { get; set; }
+    }
+
+    public struct SyncedVector2
+    {
+        public SyncedVector2(float x, float y)
+        {
+            X = x;
+            Y = y;
+        }
+
+        public float X { get; set; }
+        public float Y { get; set; }
+
+        public Vector2 ToVector2()
+        {
+            return new Vector2(X, Y);
+        }
+    }
+
+    public struct SyncedVector3
+    {
+        public SyncedVector3(float x, float y, float z)
+        {
+            X = x;
+            Y = y;
+            Z = z;
+        }
+
+        public float X { get; set; }
+        public float Y { get; set; }
+        public float Z { get; set; }
+
+        public Vector3 ToVector3()
+        {
+            return new Vector3(X, Y, Z);
         }
     }
 }

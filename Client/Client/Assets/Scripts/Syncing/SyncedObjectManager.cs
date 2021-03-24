@@ -6,8 +6,8 @@ public class SyncedObjectManager : MonoBehaviour
     [Header("Setup")]
     [SerializeField] SyncedObjectManagerConfig config = null;
 
-    [HideInInspector] public static string syncedObjectPhysicsMessage = null;
-    [HideInInspector] public static string syncedObjectStateMessage = null;
+    [HideInInspector] public static Message.PhysicsStateMessage syncedObjectPhysicsMessage = null;
+    [HideInInspector] public static Message.ObjectStateMessage syncedObjectStateMessage = null;
     [HideInInspector] public static bool modifiedSyncedObjectStates = false;
 
     static List<SyncedObject> syncedObjects = new List<SyncedObject>();
@@ -34,26 +34,23 @@ public class SyncedObjectManager : MonoBehaviour
     void HandleSyncedObjects()
     {
         List<SyncedObject> newSyncedObjects = new List<SyncedObject>();
-        string[] newSyncedObjectStateMessage = syncedObjectStateMessage.Split('~');
 
-        for (int i = 0; i < newSyncedObjectStateMessage.Length - 2; i += 2)
+        for (int i = 0; i < syncedObjectStateMessage.SyncedObjects.Length; i++)
         {
-            int syncedObjectId = int.Parse(newSyncedObjectStateMessage[i]);
-            SyncedObjectType syncedObjectType = (SyncedObjectType)int.Parse(newSyncedObjectStateMessage[i + 1]);
+            SyncedObject syncedObject;
 
-            GameObject syncedObject;
-
-            if (syncedObjectId != int.Parse(newSyncedObjectStateMessage[newSyncedObjectStateMessage.Length - 1]))
+            if (syncedObjectStateMessage.SyncedObjects[i].Id != syncedObjectStateMessage.ClientId)
             {
-                syncedObject = Instantiate(config.syncedObjectPrefabs[syncedObjectType]);
+                syncedObject = Instantiate(config.syncedObjectPrefabs[(SyncedObjectType)syncedObjectStateMessage.SyncedObjects[i].Type]).GetComponent<SyncedObject>();
             }
             else
             {
-                syncedObject = Client.localPlayerObject;
+                syncedObject = Client.localPlayerObject.GetComponent<SyncedObject>();
             }
 
-            syncedObject.GetComponent<SyncedObject>().id = syncedObjectId;
-            newSyncedObjects.Add(syncedObject.GetComponent<SyncedObject>());
+            syncedObject.id = syncedObjectStateMessage.SyncedObjects[i].Id;
+
+            newSyncedObjects.Add(syncedObject);
         }
 
         for (int i = 0; i < newSyncedObjects.Count; i++)
@@ -76,24 +73,18 @@ public class SyncedObjectManager : MonoBehaviour
 
     void HandleSyncedObjectPositions()
     {
-        string[] newSyncedObjectPhysicsMessage = syncedObjectPhysicsMessage.Split('~');
-
-        for (int i = 0; i < newSyncedObjectPhysicsMessage.Length - 1; i += 7)
+        for (int i = 0; i < syncedObjectPhysicsMessage.SyncedObjects.Length; i++)
         {
-            int syncedObjectId = int.Parse(newSyncedObjectPhysicsMessage[i]);
-            Vector3 syncedObjectPosition = new Vector3(float.Parse(newSyncedObjectPhysicsMessage[i + 1]), float.Parse(newSyncedObjectPhysicsMessage[i + 2]), float.Parse(newSyncedObjectPhysicsMessage[i + 3]));
-            Vector3 syncedObjectRotation = new Vector3(float.Parse(newSyncedObjectPhysicsMessage[i + 4]), float.Parse(newSyncedObjectPhysicsMessage[i + 5]), float.Parse(newSyncedObjectPhysicsMessage[i + 6]));
-
-            SyncedObject syncedObject = syncedObjects.Find(s => s.id == syncedObjectId);
+            SyncedObject syncedObject = syncedObjects.Find(s => s.id == syncedObjectPhysicsMessage.SyncedObjects[i].Id);
 
             if (syncedObject != null && syncedObject.gameObject != Client.localPlayerObject)
             {
-                syncedObject.transform.position = syncedObjectPosition;
-                syncedObject.transform.eulerAngles = syncedObjectRotation;
+                syncedObject.transform.position = syncedObjectPhysicsMessage.SyncedObjects[i].Position.ToVector3();
+                syncedObject.transform.eulerAngles = syncedObjectPhysicsMessage.SyncedObjects[i].Rotation.ToVector3();
             }
             else if (syncedObject != null)
             {
-                syncedObject.transform.position = syncedObjectPosition;
+                syncedObject.transform.position = syncedObjectPhysicsMessage.SyncedObjects[i].Position.ToVector3();
             }
         }
     }
