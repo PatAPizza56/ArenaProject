@@ -25,6 +25,11 @@ public class Server : MonoBehaviour
         staticConfig = config;
     }
 
+    void Start()
+    {
+        StartServer();
+    }
+
     void Update()
     {
         if (server.Active) server.Tick(100);
@@ -37,15 +42,15 @@ public class Server : MonoBehaviour
 
     void OnGUI()
     {
-        GUI.enabled = !server.Active;
-        if (GUI.Button(new Rect(0, 25, 120, 20), "Start Server"))
-            StartServer();
+        //GUI.enabled = !server.Active;
+        //if (GUI.Button(new Rect(0, 25, 120, 20), "Start Server"))
+        //    StartServer();
 
-        GUI.enabled = server.Active;
-        if (GUI.Button(new Rect(130, 25, 120, 20), "Stop Server"))
-            StopServer();
+        //GUI.enabled = server.Active;
+        //if (GUI.Button(new Rect(130, 25, 120, 20), "Stop Server"))
+        //    StopServer();
 
-        GUI.enabled = true;
+        //GUI.enabled = true;
     }
 
     public static void StartServer()
@@ -139,14 +144,7 @@ public class Server : MonoBehaviour
 
         void PlayerInputMessage(int clientID, Message.PlayerInputMessage message)
         {
-            players[clientID].GetComponent<Player>().AddInput(new PlayerInput()
-            {
-                playerCameraPosition = message.CameraPosition.ToVector3(),
-                playerCameraRotation = message.CameraRotation.ToVector3(),
-
-                playerMovementInput = message.MoveInput.ToVector2(),
-                playerJumpInput = message.JumpInput,
-            });
+            players[clientID].GetComponent<Player>().AddInput(message);
         }
     }
 }
@@ -174,6 +172,7 @@ public class Message
 
         public SyncedVector3 Position { get; set; }
         public SyncedVector3 Rotation { get; set; }
+        public SyncedVector3 Velocity { get; set; }
     }
 
     public class PlayerInputMessage

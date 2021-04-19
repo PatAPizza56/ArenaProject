@@ -6,8 +6,8 @@ public class Player : MonoBehaviour
     [Header("Setup")]
     [SerializeField] PlayerMover playerMovement = null;
 
-    List<PlayerInput> inputBuffer = new List<PlayerInput>();
-    PlayerInput lastInput = new PlayerInput();
+    List<Message.PlayerInputMessage> inputBuffer = new List<Message.PlayerInputMessage>();
+    Message.PlayerInputMessage lastInput = new Message.PlayerInputMessage();
 
     void Start()
     {
@@ -18,9 +18,11 @@ public class Player : MonoBehaviour
     void FixedUpdate()
     {
         HandleInput();
+
+        Debug.Log(inputBuffer.Count);
     }
 
-    public void AddInput(PlayerInput playerInput)
+    public void AddInput(Message.PlayerInputMessage playerInput)
     {
         inputBuffer.Add(playerInput);
     }
@@ -29,29 +31,33 @@ public class Player : MonoBehaviour
     {
         try
         {
-            PlayerInput input = inputBuffer[0];
-            lastInput = input;
-
-            transform.localEulerAngles = new Vector3(0f, input.playerCameraRotation.y, 0f);
-
-            playerMovement.SetMovement(input);
-
-            inputBuffer.RemoveAt(0);
+            if (inputBuffer.Count > 4)
+            {
+                Handle(inputBuffer[0]);
+                Handle(inputBuffer[0]);
+            }
+            else if (inputBuffer.Count < 1)
+            {
+                Handle(lastInput);
+            }
+            else
+            {
+                Handle(inputBuffer[0]);
+            }
         }
         catch
         {
-            transform.localEulerAngles = new Vector3(0f, lastInput.playerCameraRotation.y, 0f);
+            Handle(lastInput);
+        }
 
-            playerMovement.SetMovement(lastInput);
+        void Handle(Message.PlayerInputMessage input)
+        {
+            lastInput = input;
+
+            transform.localEulerAngles = new Vector3(0f, input.CameraRotation.Y, 0f);
+            playerMovement.SetMovement(input);
+
+            inputBuffer.Remove(input);
         }
     }
-}
-
-public class PlayerInput
-{
-    public Vector3 playerCameraPosition { get; set; }
-    public Vector3 playerCameraRotation { get; set; }
-
-    public Vector2 playerMovementInput { get; set; }
-    public float playerJumpInput { get; set; }
 }

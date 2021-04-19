@@ -1,8 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using System.Text;
 using UnityEngine;
 
@@ -122,8 +120,7 @@ public class Client : MonoBehaviour
 
         void ObjectStateMessage(Message.ObjectStateMessage message)
         {
-            SyncedObjectManager.syncedObjectStateMessage = message;
-            SyncedObjectManager.modifiedSyncedObjectStates = true;
+            SyncedObjectManager.HandleSyncedObjects(message);
         }
 
         void PhysicsStateMessage(Message.PhysicsStateMessage message)
@@ -156,6 +153,7 @@ public class Message
 
         public SyncedVector3 Position { get; set; }
         public SyncedVector3 Rotation { get; set; }
+        public SyncedVector3 Velocity { get; set; }
     }
 
     public class PlayerInputMessage

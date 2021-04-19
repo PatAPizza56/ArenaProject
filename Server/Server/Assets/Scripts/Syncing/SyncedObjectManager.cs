@@ -119,6 +119,7 @@ public class SyncedObjectManager : MonoBehaviour
 
                 Position = new Message.SyncedVector3(syncedObjects[i].gameObject.transform.position.x, syncedObjects[i].gameObject.transform.position.y, syncedObjects[i].gameObject.transform.position.z),
                 Rotation = new Message.SyncedVector3(syncedObjects[i].gameObject.transform.eulerAngles.x, syncedObjects[i].gameObject.transform.eulerAngles.y, syncedObjects[i].gameObject.transform.eulerAngles.z),
+                Velocity = new Message.SyncedVector3(syncedObjects[i].rb.velocity.x, syncedObjects[i].rb.velocity.y, syncedObjects[i].rb.velocity.z),
             });
         }
 
