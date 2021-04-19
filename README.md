@@ -31,4 +31,4 @@ Currently, The Arena Project is still in development and is not available to pla
 
 ### More info:
 
-[SyncedStudios Website](https://www.syncedstudios.com)\
+[SyncedStudios Website](https://www.syncedstudios.com)
