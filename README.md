@@ -10,7 +10,7 @@ The Arena Project was created initially for practice on C# networking and creati
 
 Created on: `12/20/20`  
 Skills learned: C# networking in unity, C# game development, Rendering in unity using URP  
-Project difficulty: 8/10/  
+Project difficulty: 9/9 🎉  
 Project difficulty explained: Easy to develop using skills I am already familiar with, however has a large project scale and interconnectivity of systems
 
 ## Project
