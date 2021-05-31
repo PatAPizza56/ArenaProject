@@ -28,7 +28,3 @@ Players are equipped with two weapons, that can be fired and equipped using the 
 ### Where can I play?
 
 Currently, The Arena Project is still in development and is not available to play. Updates are consistantly being added, however we are in the early stages of development. This means that it may be some time until you can get your hands on this game.
-
-### More info:
-
-[SyncedStudios Website](https://www.syncedstudios.com)
